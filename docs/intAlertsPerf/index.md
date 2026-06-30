@@ -18,36 +18,7 @@ In this exercise you will create an SLO with alert rules, that fires on a thresh
 - Configure a notification policy that routes to a specific team contact point
 - Confirm the alert fires and is received by the correct team
 
-### Step 1 — Create the SLO with alert rules
-
-1. Create your SLO, navigate to "Alerts & IRM" -> SLO
-2. Press Create SLO
-3. Ensure your prom source is selected (by default it is), choose Ratio (it's the default).
-4. Input your "success" query:
-# Good events — 200s completing under threshold (adjust le bucket to your target)
-```promql  
-traces_spanmetrics_latency_bucket{http_status_code="200", le="0.5"}
-```
-5. Input your "total" query:
-# Total events — all 200 responses
-```promql  
-traces_spanmetrics_latency_count{http_status_code="200"}
-```
-6. Press "Run queries" and ensure that your graph is populated.
-7. Advance to Set target + error budget
-8. Set your target to something unachievable, 99% or higher.
-9. Fill out some serious values in the name and description.
-10. Set the team_name value - to something you'll remember to then use as routing for the alert, maybe {$yourname}team
-11. Click "Add SLO alert rules & assistant investigations"
-12. Check "Add SLO alert rules and assistant investigations" - review the items, ensure "Enable Assistant investigations..." is disabled.
-13. Review the alerts you get created for you, for free!
-14. Click "Review SLO"
-15. Review until you feel you can review no more.
-16. Click "Save SLO"
-
-You'll now see the SLO creating, once complete, review the SLO by clicking the name, 
-
-### Step 2 - Create a new contact point
+### Step 1 - Create a new contact point
 1. Navigate to "Alerts & IRM" -> Alerting.
 2. Click "Manage contact points"
 3. Create a new contact point.
@@ -103,7 +74,6 @@ You'll now see the SLO creating, once complete, review the SLO by clicking the n
 7. You should see an instance of an alert saying "InstanceDown", click it.
 8. In here - you should see the escalation timeline in the right, explaining the route your alert took, and in there, it should say you have fired the escalation chain, and then by proxy the webhook. 
 
-
 ## CO-019 — Maintenance Window & Alert Suppression
 
 In this exercise you will create a maintenance window (silence) to suppress alerts during a defined period and confirm suppression on the performance timeline.
@@ -123,42 +93,56 @@ In this exercise you will create a maintenance window (silence) to suppress aler
 5. Add a comment: `Planned maintenance window - CO-019 lab exercise`.
 6. Click **Submit** to activate the silence.
 
-### Step 1— Start Maintenance window on your integration
+### Start Maintenance window on your integration
 1. HEad to your integration: Alerts & IRM -> IRM -> Integrations"
 2. Click the kebab menu, the three vertical dots, click "Start Maintenance".
 3. Choose the behaviour you desire, but ensure that you understand its impact, the easiest one my mind can handle is "Silence escalations" as this allows us to see the alerts, but we know that the escalation chain doesn't fire because of the abscence of the call to the webhook.
 4. Press start, you'll see that a maintenance window notice has appeared below your integration name. e.g. "1h 0m left"
-5. Fire a demo alert, ensure you can mimic the routing, just like in the steps in "Dropping a payload"
-6. If you configured your maintenance window with "silence escalations", you should be able to head over to view the newly created alert, and will see that the alert has been routed correctly, but it has not haad its escalation chain triggered.
-
-### Step 2 — Confirm suppression
-
-1. Navigate to **Alerting → Alert rules**.
-2. Confirm the previously firing alert now shows a **Suppressed** badge.
-3. Check **Notification history** — no new notifications should be dispatched after silence creation.
-
-### Step 3 — Confirm on the performance timeline
-
-1. Open the **System Overview** dashboard in this environment.
-2. Locate the performance timeline or annotations panel.
-3. The silence period should be visible as a maintenance annotation on the timeline.
-
-### Step 4 — Expire the silence
-
-1. Navigate back to **Alerting → Silences**.
-2. Click **Expire** on your silence to end the maintenance window early.
-3. Confirm the alert returns to **Firing** state, demonstrating suppression is no longer active.
 
 ### Verification
+1. Fire a demo alert, ensure you can mimic the routing, just like in the steps in "Dropping a payload"
+2. If you configured your maintenance window with "silence escalations", you should be able to head over to view the newly created alert, and will see that the alert has been routed correctly, but it has not haad its escalation chain triggered.
 
-- Silence is listed as **Active** during the window
-- Alert shows **Suppressed** state during the window
-- Performance timeline on the System Overview dashboard reflects the maintenance window
-- Alert returns to **Firing** after the silence expires
+### Bonus: Create the SLO with alert rules
+
+1. Create your SLO, navigate to "Alerts & IRM" -> SLO
+2. Press Create SLO
+3. Ensure your prom source is selected (by default it is), choose Ratio (it's the default).
+4. Input your "success" query:
+# Good events — 200s completing under threshold (adjust le bucket to your target)
+```promql  
+traces_spanmetrics_latency_bucket{http_status_code="200", le="0.5"}
+```
+5. Input your "total" query:
+# Total events — all 200 responses
+```promql  
+traces_spanmetrics_latency_count{http_status_code="200"}
+```
+6. Press "Run queries" and ensure that your graph is populated.
+7. Advance to Set target + error budget
+8. Set your target to something unachievable, 99% or higher.
+9. Fill out some serious values in the name and description.
+10. Set the team_name value - to something you'll remember to then use as routing for the alert, maybe {$yourname}team
+11. Click "Add SLO alert rules & assistant investigations"
+12. Check "Add SLO alert rules and assistant investigations" - review the items, ensure "Enable Assistant investigations..." is disabled.
+13. Review the alerts you get created for you, for free!
+14. Click "Review SLO"
+15. Review until you feel you can review no more.
+16. Click "Save SLO"
+
+You'll now see the SLO creating, once complete, review the SLO by clicking the name, 
 
 ---
 
+## END OF LAB ! 
+
+---
+
+
+
 ## CO-017 — Auto-Healing Webhook Trigger
+
+We've covered this by proxy with the configuration of the escalation chain within the alert, Here's a specific step to help you out in the future:
 
 This exercise introduces the concept of auto-healing workflows triggered by an alert metric. Full implementation of the downstream remediation system is out of scope for this lab — the key outcome is understanding how Grafana fires an action to an external webhook when an alert condition is met.
 
