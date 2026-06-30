@@ -1,0 +1,116 @@
+---
+title: FinOps
+permalink: /finops/
+---
+# FinOps
+
+# Grafana Cloud Billing Lab  
+
+> **Duration:** ~20 minutes | **Level:** Beginner | **Prereq:** Grafana Cloud access (Editor role for Task 5)  
+
+Explore your AWS billing data, understand dashboard filters, identify cost drivers, and configure a proactive spend alert.  
+
+---  
+
+## Task 1 — Find your current monthly spend  
+
+**Navigate to:** Cloud Provider Observability → AWS → Billing  
+`/a/grafana-csp-app/aws/dashboards/billing`  
+
+1. In the left-hand navigation expand **Cloud Provider Observability**, select **AWS**, then **Billing**.  
+2. Look at the top section of the dashboard — a summary panel shows the estimated monthly spend. This is calculated from AWS Cost and Usage Report data ingested into your Grafana Cloud metrics stack.  
+3. Note the time picker in the top-right. The billing dashboard aggregates spend up to the most recently ingested data point.  
+
+> ❓ **Answer this:** What is the current estimated monthly spend shown on the billing dashboard?  
+
+---  
+
+## Task 2 — Identify the Account ID filter  
+
+Dashboard filters (called **variables** in Grafana) appear as dropdowns at the top of the dashboard. They scope all panels simultaneously without editing any queries.  
+
+1. At the top of the Billing dashboard, locate the **Account** filter dropdown.  
+2. The value shown is your AWS Account ID — a 12-digit number that uniquely identifies your AWS account (or management/payer account if you use AWS Organizations).  
+3. If you manage multiple AWS accounts (e.g. dev, staging, production), each has its own Account ID and appears as a separate option, letting you isolate spend per account.  
+
+> ❓ **Answer this:** What Account ID is shown in the Account filter? What do you think would happen if you selected _All_ from the dropdown?  
+
+---  
+
+## Task 3 — Explore all available filters  
+
+The Billing dashboard exposes several filters that work together. Each one narrows all panels simultaneously.  
+
+| Filter | What it controls | Example values |  
+|---|---|---|  
+| **Datasource** | Selects which Prometheus datasource is queried. Useful if you have multiple Grafana Cloud stacks. | `grafanacloud-dfcb24-prom` |  
+| **Account** | Scopes all panels to a single AWS Account ID. Essential in multi-account AWS Organizations setups. | `008971678742` |  
+| **Region** | Filters spend to a specific AWS region. Helps identify regional cost concentration. | `us-east-1`, `eu-west-1` |  
+| **Service Name** | Narrows panels to a single AWS service. Useful for per-service cost audits. | `AmazonEC2`, `AmazonS3` |  
+
+> ❓ **Answer this:** Try changing the Region filter to a specific region. Do the totals change? What does this tell you about where your costs are concentrated?  
+
+---  
+
+## Task 4 — Find the highest spend AWS service  
+
+The billing dashboard includes a breakdown of spend by AWS service — one of the most useful views for cost optimisation.  
+
+1. Scroll down to find the panel showing cost broken down by AWS service (titled **Cost by Service** or displayed as a table/bar chart).  
+2. Services are listed with their estimated monthly cost. Common top spenders: EC2 (compute), S3 (storage), RDS (databases), Data Transfer.  
+3. Use the **Service Name** filter at the top to isolate a single service and see its trend over time.  
+4. Hover over a data point in any time-series panel to see the exact cost. Click and drag to zoom into a narrower time window.  
+
+> ❓ **Answer this:** Which AWS service is your highest line-item cost? What percentage of total monthly spend does it represent?  
+
+---  
+
+## Task 5 — Create a spend threshold alert  
+
+Grafana Alerting evaluates metrics on a schedule and fires when a condition is met. Here you will create an alert that fires when estimated monthly AWS spend exceeds **$1,200**.  
+
+**Navigate to:** Cost Management and Billing → Usage Alerts  
+`/a/grafana-cmab-app/usage-alerts`  
+
+1. In the left-hand navigation go to **Cost Management and Billing**, then select **Usage Alerts**.  
+2. Click the **+ New alert** button in the top-right.  
+3. Choose **Global usage alert** as the alert type. This fires based on total org-level spend with no label scoping required.  
+4. Complete the configuration form:  
+   - **Alert name:** e.g. `Monthly AWS spend over $1200`  
+   - **Metric:** select _Estimated charges_ (or equivalent spend metric)  
+   - **Threshold:** set to _is above_ → `1200`  
+   - **Period:** set to _month_ so it evaluates the running monthly total  
+5. Under **Notifications**, choose your contact point (email, Slack, PagerDuty). If none is configured, note this as a prerequisite for production use.  
+6. Review the alert summary — it should read: _Alert when monthly estimated charges exceed $1,200_.  
+7. Click **Save**. The alert is now active and evaluates on Grafana's alerting schedule.  
+8. Return to the Usage Alerts list and confirm your alert appears with a **Normal** state indicator (spend is below threshold).  
+
+> 💡 **Pro tip:** Set your threshold to 80% of your budget (e.g. `$960` if your budget is `$1,200`) for early warning before you breach the limit.  
+
+---  
+
+## Bonus Task — Explore anomaly and attribution alerts  
+
+**Navigate to:** `/a/grafana-cmab-app/usage-alerts` → **+ New alert**  
+
+The Usage Alerts page supports two additional alert types:  
+
+- **Anomaly alerts** — fire when usage departs significantly from a 7-day rolling average. Useful for catching unexpected spikes (e.g. a runaway Lambda function) even when absolute spend is below a fixed threshold.  
+- **Attribution alerts** — scope spend tracking to a specific label value (e.g. `team=payments` or `environment=production`). Requires consistent AWS resource tagging.  
+
+Explore the alert type options in the form — you don't need to save this step.  
+
+> 💬 **Discuss:** In your environment, which alert type would be most useful — threshold, anomaly, or attribution? What resource tags would you need in AWS for attribution alerts to work effectively?  
+
+---  
+
+## Reference links  
+
+- [AWS Billing dashboard](/a/grafana-csp-app/aws/dashboards/billing)  
+- [Cost Management and Billing app](/a/grafana-cmab-app/usage)  
+- [Usage Alerts](/a/grafana-cmab-app/usage-alerts)  
+- [Grafana docs: Usage cost alerts](https://grafana.com/docs/grafana-cloud/cost-management-and-billing/usage-cost-alerts/)  
+
+---  
+
+*Well done! You now know how to read current cloud spend, interpret dashboard filters, identify cost drivers, and configure proactive alerting — key skills for cloud cost observability.*  
