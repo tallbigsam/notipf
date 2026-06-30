@@ -83,11 +83,11 @@ It has labels including `account_id`, `dimension_ServiceName`, and `dimension_Cu
 
 A contact point tells Grafana where to send alert notifications (email, Slack, PagerDuty, etc.).  
 
-**Navigate to:** Alerting → Contact points  
+**Navigate to:** Alerting → Notification configuration  
 `/alerting/notifications`  
 
 1. Click **+ Add contact point**.  
-2. Give it a name, e.g. `AWS Billing Alerts`.  
+2. Give it a name, e.g. `AWS Billing Alerts - $yourname`.  
 3. Select an integration type — for example **Email**:  
    - Add one or more recipient addresses under _Addresses_  
 4. Click **Test** to send a test notification and confirm delivery.  
@@ -100,14 +100,16 @@ A contact point tells Grafana where to send alert notifications (email, Slack, P
 **Navigate to:** Alerting → Alert rules → New alert rule  
 `/alerting/new`  
 
+Give the query a name, something thoughtful. 
+
 #### A — Set the query  
 
 1. Under **Define query and alert condition**, select your Prometheus datasource (e.g. `grafanacloud-dfcb24-prom`).  
 2. Switch to **Code** mode and enter the following PromQL:  
 
 ```promql  
-sum(`aws_billing_estimated_charges_average`{`dimension_Currency`="USD"})  
-```  
+sum(aws_billing_estimated_charges_average{dimension_Currency="USD",dimension_ServiceName=""})
+```
 
 This sums estimated charges across all AWS services for USD. Set the query type to **Instant**.  
 
@@ -115,29 +117,32 @@ This sums estimated charges across all AWS services for USD. Set the query type 
 
 #### B — Set the threshold condition  
 
-4. Under **Expressions**, you will see a default **Reduce** expression (B) and **Threshold** expression (C).  
-   - **B (Reduce):** Function = `Last`, Input = `A`  
+4. Enable Advanced Options in the top right.
+6. Under **Expressions**, you will see a default **Threshold** expression (C).  
    - **C (Threshold):** set condition to `IS ABOVE` → `1200`  
-5. Set **C** as the alert condition.  
+7. Set **C** as the alert condition (if not already, you will see *tick* Alert condition if this is set).
 
-#### C — Configure evaluation  
+### C inbetween
+1. Create a new folder with "AWS Alerts - $yourname"
+2. Add Labels - set a "team_name" label with the value of $yourname - no spaces though. 
 
-6. Under **Alert evaluation**, set:  
+#### D — Configure evaluation  
+
+8. Under **Alert evaluation**, set:  
    - **Evaluation group:** create a new group, e.g. `billing-alerts`  
    - **Evaluation interval:** `10m` (AWS billing metrics update infrequently, so 10–60 min is appropriate)  
-   - **Pending period:** `0s` (fire immediately when threshold is crossed)  
-
-#### D — Add details  
-
-7. Under **Add details for your alert rule**:  
-   - **Rule name:** `AWS Monthly Spend Over $1200`  
-   - Add an annotation **Summary:** `AWS estimated monthly spend has exceeded $1,200 (current: {{ $values.B.Value | printf "%.2f" }})`  
+   - **Pending period:** `0s` or none (fire immediately when threshold is crossed)  
 
 #### E — Set notifications  
 
-8. Under **Configure notifications**, choose **Select contact point** and pick the `AWS Billing Alerts` contact point you created in Step 1.  
+9. Under **Configure notifications**, choose **Select contact point** and pick the `AWS Billing Alerts` contact point you created in Step 1.  
 
-9. Click **Save rule and exit**.  
+#### F — Add details  
+
+10. Under **Configure notification message**:  
+   - **Summary:** `AWS Monthly Spend Over $1200`  
+   - Add an annotation **Description:** `AWS estimated monthly spend has exceeded $1,200`  
+11. Click **Save rule and exit**.  
 
 ---  
 
