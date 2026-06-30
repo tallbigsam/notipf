@@ -18,6 +18,8 @@ In this exercise you will create an SLO with alert rules, that fires on a thresh
 - Configure a notification policy that routes to a specific team contact point
 - Confirm the alert fires and is received by the correct team
 
+## Think about your team_name value, ensure its unique, normally doing something like ${yourname}team ensure's it's unique. e.g. samredteam.
+
 ### Step 1 - Create a new contact point
 1. Navigate to "Alerts & IRM" -> Alerting.
 2. Click "Manage contact points"
@@ -109,12 +111,12 @@ In this exercise you will create a maintenance window (silence) to suppress aler
 2. Press Create SLO
 3. Ensure your prom source is selected (by default it is), choose Ratio (it's the default).
 4. Input your "success" query:
-# Good events — 200s completing under threshold (adjust le bucket to your target)
+#### Good events — 200s completing under threshold (adjust le bucket to your target)
 ```promql  
 traces_spanmetrics_latency_bucket{http_status_code="200", le="0.5"}
 ```
 5. Input your "total" query:
-# Total events — all 200 responses
+#### Total events — all 200 responses
 ```promql  
 traces_spanmetrics_latency_count{http_status_code="200"}
 ```
