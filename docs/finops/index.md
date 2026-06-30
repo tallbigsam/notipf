@@ -65,27 +65,95 @@ The billing dashboard includes a breakdown of spend by AWS service — one of th
 
 ---  
 
-## Task 5 — Create a spend threshold alert  
+## Task 5 — Create a spend threshold alert using Grafana Alerting  
 
-Grafana Alerting evaluates metrics on a schedule and fires when a condition is met. Here you will create an alert that fires when estimated monthly AWS spend exceeds **$1,200**.  
+AWS billing data is ingested as Prometheus metrics into your Grafana Cloud stack. This means you can alert on it using standard Grafana alert rules, exactly as you would for any other infrastructure metric.  
 
-**Navigate to:** Cost Management and Billing → Usage Alerts  
-`/a/grafana-cmab-app/usage-alerts`  
+The metric you will use is:  
 
-1. In the left-hand navigation go to **Cost Management and Billing**, then select **Usage Alerts**.  
-2. Click the **+ New alert** button in the top-right.  
-3. Choose **Global usage alert** as the alert type. This fires based on total org-level spend with no label scoping required.  
-4. Complete the configuration form:  
-   - **Alert name:** e.g. `Monthly AWS spend over $1200`  
-   - **Metric:** select _Estimated charges_ (or equivalent spend metric)  
-   - **Threshold:** set to _is above_ → `1200`  
-   - **Period:** set to _month_ so it evaluates the running monthly total  
-5. Under **Notifications**, choose your contact point (email, Slack, PagerDuty). If none is configured, note this as a prerequisite for production use.  
-6. Review the alert summary — it should read: _Alert when monthly estimated charges exceed $1,200_.  
-7. Click **Save**. The alert is now active and evaluates on Grafana's alerting schedule.  
-8. Return to the Usage Alerts list and confirm your alert appears with a **Normal** state indicator (spend is below threshold).  
+```  
+`aws_billing_estimated_charges_average`  
+```  
 
-> 💡 **Pro tip:** Set your threshold to 80% of your budget (e.g. `$960` if your budget is `$1,200`) for early warning before you breach the limit.  
+It has labels including `account_id`, `dimension_ServiceName`, and `dimension_Currency`. To alert on **total** spend across all services, you sum across all `dimension_ServiceName` values.  
+
+---  
+
+### Step 1 — Create a contact point  
+
+A contact point tells Grafana where to send alert notifications (email, Slack, PagerDuty, etc.).  
+
+**Navigate to:** Alerting → Contact points  
+`/alerting/notifications`  
+
+1. Click **+ Add contact point**.  
+2. Give it a name, e.g. `AWS Billing Alerts`.  
+3. Select an integration type — for example **Email**:  
+   - Add one or more recipient addresses under _Addresses_  
+4. Click **Test** to send a test notification and confirm delivery.  
+5. Click **Save contact point**.  
+
+---  
+
+### Step 2 — Create the alert rule  
+
+**Navigate to:** Alerting → Alert rules → New alert rule  
+`/alerting/new`  
+
+#### A — Set the query  
+
+1. Under **Define query and alert condition**, select your Prometheus datasource (e.g. `grafanacloud-dfcb24-prom`).  
+2. Switch to **Code** mode and enter the following PromQL:  
+
+```promql  
+sum(`aws_billing_estimated_charges_average`{`dimension_Currency`="USD"})  
+```  
+
+This sums estimated charges across all AWS services for USD. Set the query type to **Instant**.  
+
+3. Click **Run queries** to confirm a value is returned — it should reflect your current estimated spend in dollars.  
+
+#### B — Set the threshold condition  
+
+4. Under **Expressions**, you will see a default **Reduce** expression (B) and **Threshold** expression (C).  
+   - **B (Reduce):** Function = `Last`, Input = `A`  
+   - **C (Threshold):** set condition to `IS ABOVE` → `1200`  
+5. Set **C** as the alert condition.  
+
+#### C — Configure evaluation  
+
+6. Under **Alert evaluation**, set:  
+   - **Evaluation group:** create a new group, e.g. `billing-alerts`  
+   - **Evaluation interval:** `10m` (AWS billing metrics update infrequently, so 10–60 min is appropriate)  
+   - **Pending period:** `0s` (fire immediately when threshold is crossed)  
+
+#### D — Add details  
+
+7. Under **Add details for your alert rule**:  
+   - **Rule name:** `AWS Monthly Spend Over $1200`  
+   - Add an annotation **Summary:** `AWS estimated monthly spend has exceeded $1,200 (current: {{ $values.B.Value | printf "%.2f" }})`  
+
+#### E — Set notifications  
+
+8. Under **Configure notifications**, choose **Select contact point** and pick the `AWS Billing Alerts` contact point you created in Step 1.  
+
+9. Click **Save rule and exit**.  
+
+---  
+
+### Verify the alert  
+
+Navigate to **Alerting → Alert rules** and find your new rule. It will show as:  
+- **Normal** — spend is below $1,200  
+- **Firing** — spend has exceeded $1,200  
+
+> ❓ **Answer this:** What state is your alert currently in? Based on Task 1, does this match your actual spend?  
+
+> 💡 **Pro tip:** To alert per-service rather than total spend, add a `by (dimension_ServiceName)` clause:  
+> ```promql  
+> sum by (`dimension_ServiceName`) (`aws_billing_estimated_charges_average`{`dimension_Currency`="USD"})  
+> ```  
+> This fires a separate alert instance for each service that exceeds the threshold.  
 
 ---  
 
