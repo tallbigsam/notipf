@@ -113,8 +113,8 @@ In this exercise you will create a maintenance window (silence) to suppress aler
 - Confirm alerts are suppressed during the window
 - Verify the suppression period is visible on the System Overview performance timeline
 
-### Step 1 — Create a silence (maintenance window)
-
+### Info — What you could do: Create a silence (maintenance window)
+**Don't do this, we're instead going to do it through IRM, but this is a mechanism which you could perform**
 1. Navigate to **Alerting → Silences** and click **Add silence**.
 2. Set the **Start** and **End** time to cover a window of at least 10 minutes from now.
 3. Under **Matchers**, add a matcher that covers your CO-006 alert rule — for example:
