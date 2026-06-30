@@ -11,46 +11,98 @@ This lab walks you through three core alerting and automation scenarios using th
 
 ## CO-006 — Alert Trigger & Escalation Policy Routing
 
-In this exercise you will create an alert rule that fires on a threshold breach and verify it routes to the correct team via a notification policy.
+In this exercise you will create an SLO with alert rules, that fires on a threshold breach and verify it routes to the correct team via a notification policy.
 
 **Objectives**
-- Create an alert rule with a static threshold condition
+- Create an SLO with a metric query
 - Configure a notification policy that routes to a specific team contact point
 - Confirm the alert fires and is received by the correct team
 
-### Step 1 — Create the alert rule
+### Step 1 — Create the SLO with alert rules
 
-1. Navigate to **Alerting → Alert rules** and click **New alert rule**.
-2. Select a Prometheus datasource and enter a query that will breach a known threshold — for example, a request error rate metric.
-3. Under **Set alert conditions**, add a **Threshold** expression. Set the condition to fire when the value exceeds your chosen threshold (e.g. `> 0.05` for a 5% error rate).
-4. Set the **Evaluation group** interval to `1m` and pending period to `0s` so it fires immediately.
-5. Name the rule clearly, e.g. `High Error Rate - CO-006`.
+1. Create your SLO, navigate to "Alerts & IRM" -> SLO
+2. Press Create SLO
+3. Ensure your prom source is selected (by default it is), choose Ratio (it's the default).
+4. Input your "success" query:
+# Good events — 200s completing under threshold (adjust le bucket to your target)
+```promql  
+traces_spanmetrics_latency_bucket{http_status_code="200", le="0.5"}
+```
+5. Input your "total" query:
+# Total events — all 200 responses
+```promql  
+traces_spanmetrics_latency_count{http_status_code="200"}
+```
+6. Press "Run queries" and ensure that your graph is populated.
+7. Advance to Set target + error budget
+8. Set your target to something unachievable, 99% or higher.
+9. Fill out some serious values in the name and description.
+10. Set the team_name value - to something you'll remember to then use as routing for the alert, maybe {$yourname}team
+11. Click "Add SLO alert rules & assistant investigations"
+12. Check "Add SLO alert rules and assistant investigations" - review the items, ensure "Enable Assistant investigations..." is disabled.
+13. Review the alerts you get created for you, for free!
+14. Click "Review SLO"
+15. Review until you feel you can review no more.
+16. Click "Save SLO"
 
-### Step 2 — Add labels for routing
+You'll now see the SLO creating, once complete, review the SLO by clicking the name, 
 
-1. Under **Labels**, add a label that matches your notification policy route.
-   Example: `team=platform` or `severity=critical`.
-2. This label is what the notification policy uses to route to the correct contact point.
+### Step 2 - Create a new contact point
+1. Navigate to "Alerts & IRM" -> Alerting.
+2. Click "Manage contact points"
+3. Create a new contact point.
+4. Name it "{$yourname} integration"
+5. Under "Integration" select "Grafana IRM"
+6. Choose "New Integration"
+7. Name the integration "{$Yourname}Integration"
+8. Click "Save contact point"
 
-### Step 3 — Verify the notification policy route
+### Create a notification policy
+1. Head to "Alerts & IRM -> Alerting -> Notification configuration"
+2. Name your policy "{$yourname}-notification-policy"
+3. Set the contact point to your integration which you created previously
+4. Create the policy
+5. Create a route for your new policy "+ Add Route"
+6. Set the label to "team_name", leave operator to "=", set the value to the teamname you used on your alerts for your SLO's, set the contact point to the integration which you created.
+7. Click "Add Route"
 
-1. Navigate to **Alerting → Notification policies**.
-2. Confirm a policy exists (or create one) matching your label (e.g. `team=platform`) and pointing to your team's contact point.
-3. If no policy exists, click **New nested policy**, set the matcher, and select the appropriate contact point.
+### Create a webhook
+1. head over to webhook.site
+2. Copy your unique URL
+3. Go to "Alerts & IRM -> IRM -> Integrations", choose "Outgoing Webhooks"
+4. Name the webhook
+5. Apply some labels (we'll just use them as a test to show that we can send values in the payload).
+6. Paste your webhook url into the webhookURL field (You'll need to click the pencil first).
+7. Click Create.
 
-### Step 4 — Trigger the alert
+### Create an escalation chain
+1. Head to the integration you created under "Alerts & IRM -> IRM -> Integrations"
+2. Click "Add Route"
+3. Click "Template Matching"
+4. Add:
+```
+{{ payload.commonLabels.team_name == "${YOURTEAMNAME}" }}
+```
+5. Click save
+6. Click "Add an escalation chain"
+7. Click New Escalation Chain
+8. Name it and create
+9. For the first step, add "Trigger Webhook"
+10. Select the webhook we created earlier.
+11. Add a Wait period, of your choosing, no lower than 5 mins
+12. Add another step for your amusement.
+13. Go back to your integration and apply the escalation chain to your route, you may need to press the refresh button, but it should then appear in the dropdown. You know it has linked when you have a button "Show escalation chain"
 
-1. If the environment is not already generating traffic above your threshold, temporarily lower the threshold value to guarantee a breach.
-2. Wait for the next evaluation cycle (up to 1 minute).
-3. Navigate to **Alerting → Alert rules** and confirm the rule transitions to **Firing** state.
+### Dropping a payload
+1. Go to your integration
+2. Find the "send demo alert" button and click it.
+3. Add the following in each of the "labels" fields, there should be 3 within the alerts array. "team_name": "${yourteamname}", e.g. if my team_name was "samteam", it would be "team_name": "samteam".
+4. Add the label to the "commonLabels" object, there should already be a team_name field there, just change it to be yours.
+5. Click send alert - you should see a green success message in the top right.
+6. Click the blue "alert groups" status, it should be to the left of your integration name, and be 1/1 if you've never had an alert sent there before.
+7. You should see an instance of an alert saying "InstanceDown", click it.
+8. In here - you should see the escalation timeline in the right, explaining the route your alert took, and in there, it should say you have fired the escalation chain, and then by proxy the webhook. 
 
-### Verification
-
-- Alert rule shows **Firing** state in the alert rules list
-- **Alerting → Notification history** shows the alert was dispatched to the correct contact point
-- The correct team/channel received the notification
-
----
 
 ## CO-019 — Maintenance Window & Alert Suppression
 
