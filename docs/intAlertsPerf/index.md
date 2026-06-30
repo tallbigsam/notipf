@@ -123,7 +123,7 @@ In this exercise you will create a maintenance window (silence) to suppress aler
 5. Add a comment: `Planned maintenance window - CO-019 lab exercise`.
 6. Click **Submit** to activate the silence.
 
-### Step 2 — Start Maintenance window on your integration
+### Step 1— Start Maintenance window on your integration
 1. HEad to your integration: Alerts & IRM -> IRM -> Integrations"
 2. Click the kebab menu, the three vertical dots, click "Start Maintenance".
 3. Choose the behaviour you desire, but ensure that you understand its impact, the easiest one my mind can handle is "Silence escalations" as this allows us to see the alerts, but we know that the escalation chain doesn't fire because of the abscence of the call to the webhook.
