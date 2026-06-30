@@ -115,12 +115,13 @@ In this exercise you will create a maintenance window (silence) to suppress aler
 
 ### Info — What you could do: Create a silence (maintenance window)
 **Don't do this, we're instead going to do it through IRM, but this is a mechanism which you could perform**
-1. Navigate to **Alerting → Silences** and click **Add silence**.
-2. Set the **Start** and **End** time to cover a window of at least 10 minutes from now.
-3. Under **Matchers**, add a matcher that covers your CO-006 alert rule — for example:
+1. Read the message above and make sure you understand you're not supposed to follow these steps.
+2. Navigate to **Alerting → Silences** and click **Add silence**.
+3. Set the **Start** and **End** time to cover a window of at least 10 minutes from now.
+4. Under **Matchers**, add a matcher that covers your CO-006 alert rule — for example:
    `alertname=High Error Rate - CO-006` or match on the `team` label set earlier.
-4. Add a comment: `Planned maintenance window - CO-019 lab exercise`.
-5. Click **Submit** to activate the silence.
+5. Add a comment: `Planned maintenance window - CO-019 lab exercise`.
+6. Click **Submit** to activate the silence.
 
 ### Step 2 — Confirm suppression
 
