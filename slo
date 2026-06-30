@@ -1,0 +1,69 @@
+import {
+  to = grafana_slo._g4kuhcdxzvl35tucn5kj8
+  id = "g4kuhcdxzvl35tucn5kj8"
+}
+
+resource "grafana_slo" "_g4kuhcdxzvl35tucn5kj8" {
+  name        = "200 codes in less than 500millis Latency SLO"
+  description = "Ensures we can get 200's less than 500 millis."
+
+  label {
+    key   = "team_name"
+    value = "samteam"
+  }
+
+  destination_datasource {
+    uid = "grafanacloud-prom"
+  }
+
+  objectives {
+    value  = 0.99
+    window = "28d"
+  }
+
+  alerting {
+
+    fastburn {
+
+      annotation {
+        key   = "name"
+        value = "SLO Burn Rate Very High"
+      }
+      annotation {
+        key   = "description"
+        value = "Error budget is burning too fast."
+      }
+    }
+
+    slowburn {
+
+      annotation {
+        key   = "name"
+        value = "SLO Burn Rate High"
+      }
+      annotation {
+        key   = "description"
+        value = "Error budget is burning too fast."
+      }
+    }
+
+    advanced_options {
+      min_failures = 0
+    }
+
+    annotation {
+      key   = "runbook_url"
+      value = ""
+    }
+  }
+
+  query {
+    type = "ratio"
+
+    ratio {
+      success_metric  = "traces_spanmetrics_latency_bucket{http_status_code=\"200\", le=\"0.5\"}"
+      total_metric    = "traces_spanmetrics_latency_count{http_status_code=\"200\"}"
+      group_by_labels = null
+    }
+  }
+}
