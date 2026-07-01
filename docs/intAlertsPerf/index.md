@@ -127,10 +127,11 @@ traces_spanmetrics_latency_count{http_status_code="200"}
 10. Set the team_name value - to something you'll remember to then use as routing for the alert, maybe {$yourname}team
 11. Click "Add SLO alert rules & assistant investigations"
 12. Check "Add SLO alert rules and assistant investigations" - review the items, ensure "Enable Assistant investigations..." is disabled.
-13. Review the alerts you get created for you, for free!
-14. Click "Review SLO"
-15. Review until you feel you can review no more.
-16. Click "Save SLO"
+13. Ensure you add your team_name label and value to the alerts, without this, your alert will not route to your integration. 
+14. Review the alerts you get created for you, for free!
+15. Click "Review SLO"
+16. Review until you feel you can review no more.
+17. Click "Save SLO"
 
 You'll now see the SLO creating, once complete, review the SLO by clicking the name, 
 
